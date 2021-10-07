@@ -1,0 +1,32 @@
+<div class="card mb-5 year">
+  <h5 class="card-header">
+    <%= year %>г.
+    <span class="float-right post_count">
+      <%= posts.size %> шт.
+    </span>
+  </h5>
+  <ul class="list-group list-group-flush years">
+    <% posts.each do |post|
+      post = OpenStruct.new(post)
+      post.time = Time.parse(post.time)
+    %>
+      <li class="list-group-item d-flex justify-content-between align-items-center post">
+        <%= link_to post.title, "/user/#{(post.user || post.blog)['username']}/#{post.post_id}" %>
+        <span class="badge badge-white">
+          <% if post.comment_count > 0%>
+            <span class="comments" title="Кол-во комментариев">
+              <i class="far fa-comment"></i><%= post.comment_count %>
+            </span>
+          <% end %>
+          <% if post.time %>
+            <%= link_to post.url, target: '_blank', title: 'Посмотреть оригинал на Livejournal.com' do %>
+              <%= post.time.strftime('%d.%m.%Y') %>
+              <small><%= post.time.strftime('%H:%M') %></small>
+            <% end %>
+          <% end %>
+        </span>
+      </li>
+    <% end %>
+  </ul>
+</div>
+

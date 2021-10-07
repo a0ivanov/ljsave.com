@@ -1,0 +1,23 @@
+<html lang="ru">
+<head>
+  <title>Navigation</title>
+  <meta charset="UTF-8" />
+  <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand navbar-dark bg-dark mb-3" id="main_navbar">
+    <a class="navbar-brand" href="/" target="_top">
+      <span class="padded_left monospaced">LJSave.com</span>
+    </a>
+    <ul class="navbar-nav mx-auto">
+      <li class="nav-item">
+        <span class="navbar-text">
+          Копия ЖЖ
+          <%= link_to(@username, "/user/#{@username}", target: '_top') %>
+        </span>
+      </li>
+    </ul>
+    <%= render :partial => "layouts/search_form_yandex" %>
+  </nav>
+</body>
+</html>

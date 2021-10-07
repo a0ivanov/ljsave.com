@@ -1,0 +1,38 @@
+<h1>Сохраненные копии ЖЖ-дневников, с комментариями</h1>
+<div class="text-center mb-4 mt-3"></div>
+<iframe allow="encrypted-media" allowTransparency="true" frameborder="0" height="21" scrolling="no" src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fljsave.com&amp;width=117&amp;layout=button_count&amp;action=like&amp;size=small&amp;show_faces=false&amp;share=false&amp;height=21&amp;appId=1564329417065426" style="border:none;overflow:hidden" width="117"></iframe>
+<div class="card">
+  <ul class="list-group list-group-flush" id="user_list">
+    <% @users.each do |user|%>
+    <li class="list-group-item">
+      <%= link_to user_path(user) do %>
+        <%= user.name %>
+        <div class="float-right post_count">
+          <%= number_with_delimiter(user.post_count, delimiter: '&thinsp;'.html_safe) %> шт.
+        </div>
+      <% end %>
+    </li>
+    <% end %>
+  </ul>
+</div>
+
+<div class="text-center mt-5" id="footer">
+  <%= link_to 'https://t.me/ljsave' do %>
+    <i class="fab fa-telegram"></i>  Обсудить сайт
+  <% end %>
+  &nbsp;&middot;&nbsp;
+  <%= link_to 'Участвовать в разработке', 'https://github.com/mgz/ljsave.com' %>
+  &nbsp;&middot;&nbsp;
+  <%= link_to 'Youtube parental control', 'https://youtubik.app' %>
+</div>
+<script>
+  var socialLikesButtons = {
+    github: {
+      counterUrl: 'https://api.github.com/repos/mgz/ljsave.com?callback=?',
+      convertNumber: function (data) {
+        return data.data.stargazers_count;
+      },
+      clickUrl: 'https://github.com/mgz/ljsave.com/'
+    }
+  };
+</script>

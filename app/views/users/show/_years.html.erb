@@ -1,0 +1,12 @@
+<div class="card mb-5">
+  <ul class="list-group list-group-flush years">
+    <% @years.each_pair do |year, posts|%>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <%= link_to "/user/#{@user.name}/year/#{year}" do %>
+          <%= year %>г.
+        <% end %>
+        <span class="badge badge-white"><%= posts.size %> шт.</span>
+      </li>
+    <% end %>
+  </ul>
+</div>

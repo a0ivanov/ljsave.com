@@ -1,8 +1,0 @@
-= render :partial => "users/show/like", locals: {username: @user.name}
-
-#user_entries
-  - if @too_many_posts
-    = render :partial => "users/show/years"
-  - else
-    - @years.each_pair do |year, posts|
-      = render :partial => "users/show/year", locals: {year: year, posts: posts}
