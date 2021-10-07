@@ -30,7 +30,6 @@
 /public/sitemap.xml.gz
 
 /public/lj/
-/Capfile
 
 target
 *.log
