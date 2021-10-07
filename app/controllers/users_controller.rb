@@ -42,7 +42,13 @@ class UsersController < ApplicationController
 
   def post_nav
     @username = params[:username]
+    @user = User.new(params[:username])
     @post_id = params[:post_id].to_i
+
+    posts = @user.posts_hash['posts']
+    this_post_index = posts.index { |it| it['id'] == @post_id.to_s}
+    @prev_post = posts[this_post_index - 1] if this_post_index > 0
+    @next_post = posts[this_post_index + 1] if this_post_index < posts.size - 1
 
     render layout: nil
   end

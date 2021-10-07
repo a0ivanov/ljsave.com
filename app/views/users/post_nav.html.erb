@@ -11,10 +11,16 @@
     </a>
     <ul class="navbar-nav mx-auto">
       <li class="nav-item">
+        <% if @prev_post %>
+          <%= link_to '⬅', "/user/#{@username}/#{@prev_post['id']}", target: '_top', rel: 'prev', class: 'mr-3' %>
+      <% end %>
         <span class="navbar-text">
           Копия ЖЖ
-          <%= link_to(@username, "/user/#{@username}", target: '_top') %>
+          <%= link_to @username, "/user/#{@username}", target: '_top' %>
         </span>
+        <% if @next_post %>
+          <%= link_to '➡', "/user/#{@username}/#{@next_post['id']}", target: '_top', rel: 'next', class: 'ml-3' %>
+        <% end %>
       </li>
     </ul>
     <%= render :partial => "layouts/search_form_yandex" %>
