@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "dokku": {
+      "predeploy": "NODE_OPTIONS=--openssl-legacy-provider RAILS_ENV=production NODE_ENV=production bundle exec rails assets:precompile"
+    }
+  },
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "name": "Web check",
+        "path": "/",
+        "attempts": 3,
+        "content" : "ljsave"
+      }
+    ]
+  }
+}
