@@ -26,7 +26,11 @@ LJSave.com состоит из трех частей:
 ### 3. Скачанные данные
 Данные из `/public/lj/` мы храним в отдельном репозитории https://github.com/mgz/ljsave.com-data
 
-Их нужно положить в папку `/public/lj/`
+Их нужно положить в папку `/public/lj/`:
+
+```shell
+git clone git@github.com:mgz/ljsave.com-data.git public/lj
+```
 
 ```sh
 USE_CACHE=1 DEBUG_LOG=0 brake scraper:download username=USER
