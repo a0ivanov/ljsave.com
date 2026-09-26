@@ -17,7 +17,9 @@ module Downloader
       # datadir = Pathname(current_dir).dirname.to_s
       # datadir = Pathname(datadir).dirname.to_s
       # datadir = "#{datadir}/tmp/chrome_datadirs/"
-
+      
+      Webdrivers::Chromedriver.required_version = '114.0.5735.90'
+      
       options = Selenium::WebDriver::Chrome::Options.new #/usr/bin/google-chrome
       options.add_argument('--ignore-certificate-errors')
       options.add_argument('--no-sandbox')

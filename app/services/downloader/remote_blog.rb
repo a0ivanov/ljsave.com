@@ -139,7 +139,7 @@ module Downloader
     end
 
     def get_date_range
-      start_year = 2001
+      start_year = 2007
       start_month = 1
 
       end_year = Date.today.year
@@ -151,13 +151,14 @@ module Downloader
     end
 
     def get_posts(cached: false)
-      if cached && File.exists?(cached_posts_dir + '/_post_urls.txt')
+      cached_posts_list_path = cached_posts_dir + '_post_urls.txt'
+      if cached && File.exists?(cached_posts_list_path)
         putsd 'loading cached posts...'
-        posts = File.open(cached_posts_dir + '/_post_urls.txt').readlines.map { |l| RemotePost.new(l.strip, blog: self) }
+        posts = File.open(cached_posts_list_path).readlines.map { |l| RemotePost.new(l.strip, blog: self) }
         puts '...done'
         return posts
       end
-      putsd 'getting posts...'
+      putsd "getting posts... (cached: #{cached}), (cached_posts_list_path: #{cached_posts_list_path})"
 
       start_year, start_month, end_year, end_month = get_date_range
 
@@ -181,7 +182,9 @@ module Downloader
     end
 
     def get_posts_from_archive_page(year, month)
-      html = Nokogiri::HTML(read_url("https://#{@username}.livejournal.com/#{year}/#{sprintf('%02d', month)}/"))
+      url = "https://#{@username}.livejournal.com/#{year}/#{sprintf('%02d', month)}/"
+      #putsd "loading url #{url}"
+      html = Nokogiri::HTML(read_url(url))
       urls = html.css('a').select { |a| a.attribute('href')&.value =~ %r{://#{@username}.livejournal.com/\d+.html} }.map { |a| a.attribute('href').value }
       putsd "    #{urls.size} for #{year}.#{month}"
       return urls.map { |u| RemotePost.new(u.strip, blog: self) }

@@ -1,0 +1,9 @@
+WSL
+
+sudo docker build -t ljsave .
+
+sudo docker run --name ljcontainer -d -i -v $(pwd)/scraped:/home/app/webapp/scraped -v $(pwd)/public/lj:/home/app/webapp/public/lj -e DEBUG_LOG=1 -e USE_CACHE=1 -e RAILS_ENV=production -e PROXY='192.168.1.5:2080' -e LJ_HTTP_HTTPS_PROXY='192.168.1.5:38080' -t ljsave /bin/sh
+sudo docker exec -it ljcontainer bash
+sudo docker stop ljcontainer
+
+sudo docker exec -it ljcontainer bundle exec rake scraper:download username=vecetti
