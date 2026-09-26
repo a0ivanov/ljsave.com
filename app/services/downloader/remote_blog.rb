@@ -126,7 +126,13 @@ module Downloader
     private
 
     def mirror_posts(posts)
-      Parallel.each(posts, in_processes: 8, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      # it looks like 8 processes block selenium driver. Use 1 as it works at least
+      process_number = 1
+      if (process_number_str = ENV['MIRROR_POSTS_PROCESS_NUMBER'])
+        process_number = process_number_str.to_i
+      end
+      
+      Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
         next if post.cached? && ENV['REMIRROR'] != '1'
         puts "Will mirror #{post}"
         begin
