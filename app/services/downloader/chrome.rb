@@ -18,7 +18,11 @@ module Downloader
       # datadir = Pathname(datadir).dirname.to_s
       # datadir = "#{datadir}/tmp/chrome_datadirs/"
       
-      Webdrivers::Chromedriver.required_version = '114.0.5735.90'
+      # chromedriver binary downloaded from
+      #    https://googlechromelabs.github.io/chrome-for-testing/
+      # is supposed to be put at ~/.webdrivers
+      #    per /usr/local/bundle/ruby/webdrivers-5.2.0/webdrivers/common.rb 
+      #Webdrivers::Chromedriver.required_version = '154.0.8037.57'
       
       options = Selenium::WebDriver::Chrome::Options.new #/usr/bin/google-chrome
       options.add_argument('--ignore-certificate-errors')

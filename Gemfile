@@ -39,6 +39,9 @@ end
 group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
+  gem 'base64', '~> 0.2'
+  gem 'logger', '~> 1.4'
+  gem 'rubyzip', '< 4.0', '>= 1.2.2'
   gem 'selenium-webdriver'
 end
 
