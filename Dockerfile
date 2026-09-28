@@ -21,17 +21,17 @@ RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian bullseye m
     && cat /etc/apt/sources.list \
     && apt-get -o Acquire::Check-Valid-Until=false update
 
-# the last version supported by ^
-ENV CHROME_VERSION=114.0.5735.198-1
-# As https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable
-#    is not available use
-#    https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/
-RUN echo "Install Google Chrome ${CHROME_VERSION}" \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && wget -q https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
-    && apt-get install -y ./google-chrome-stable_${CHROME_VERSION}_amd64.deb
+### # the last version supported by ^
+### ENV CHROME_VERSION=114.0.5735.198-1
+### # As https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable
+### #    is not available use
+### #    https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/
+### RUN echo "Install Google Chrome ${CHROME_VERSION}" \
+###   && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+###   && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list \
+###   && apt-get update \
+###   && wget -q https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
+###   && apt-get install -y ./google-chrome-stable_${CHROME_VERSION}_amd64.deb
 
 RUN echo 'Europe/Moscow' > /etc/timezone && \
   apt-get update && \
