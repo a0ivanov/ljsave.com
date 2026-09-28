@@ -68,7 +68,9 @@ RUN echo 'Europe/Moscow' > /etc/timezone && \
 
 COPY Gemfile* /app/
 WORKDIR /app
-RUN bundle config --global silence_root_warning 1 && \
+
+RUN gem install bundler -v 2.4.21 && \
+  bundle config --global silence_root_warning 1 && \
   bundle config --local deployment 'true' && \
   bundle config --local without 'development test' && \
   bundle config --local clean 'true' && \
