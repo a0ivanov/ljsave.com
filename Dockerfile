@@ -4,22 +4,19 @@ ARG NODE_MAJOR=20
 ARG YARN_VERSION='3.3.0'
 ARG NODE_OPTIONS=--openssl-legacy-provider
 
-### RUN cat /etc/apt/sources.list
-
-### # deb http://snapshot.debian.org/archive/debian/20220418T000000Z bullseye main
 ### deb http://deb.debian.org/debian bullseye main
-### # deb http://snapshot.debian.org/archive/debian-security/20220418T000000Z bullseye-security main
-### deb http://security.debian.org/debian-security bullseye-security main
-### # deb http://snapshot.debian.org/archive/debian/20220418T000000Z bullseye-updates main
+### deb http://deb.debian.org/debian-security bullseye-security main
 ### deb http://deb.debian.org/debian bullseye-updates main
 
-RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian bullseye main" > /etc/apt/sources.list.d/bullseye-backports.list \
+RUN cat /etc/apt/sources.list \
+    && echo "deb [check-valid-until=no] http://archive.debian.org/debian bullseye main" > /etc/apt/sources.list.d/bullseye-backports.list \
     && sed -i '/deb http:\/\/deb.debian.org\/debian bullseye main/d' /etc/apt/sources.list \
     && sed -i '/deb http:\/\/security.debian.org\/debian-security bullseye-security main/d' /etc/apt/sources.list \
-    && sed -i -e 's/deb.debian.org/archive.debian.org/g' -e 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
-    && sed -i '/deb http:\/\/deb.debian.org\/debian bullseye main/d' /etc/apt/sources.list \
+    && sed -i -e '/deb http:\/\/deb.debian.org\/debian-security bullseye-security main/d' -e 's/deb.debian.org/archive.debian.org/g'  /etc/apt/sources.list \
     && cat /etc/apt/sources.list \
     && apt-get -o Acquire::Check-Valid-Until=false update
+
+### deb http://archive.debian.org/debian bullseye-updates main
 
 ### # the last version supported by ^
 ### ENV CHROME_VERSION=114.0.5735.198-1
