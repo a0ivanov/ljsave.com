@@ -163,7 +163,7 @@ module Downloader
       if @browser.page_source.include?('This site can’t be reached') || @browser.page_source.length < 500
         raise ProxyError if retry_no > 5
         puts "*** RETRYING - #{retry_no + 1}"
-        sleep 0.5
+        sleep 12 ###!!! 0.5
         return prepare_browser(retry_no + 1)
       end
       return @browser
