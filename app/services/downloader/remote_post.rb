@@ -9,6 +9,7 @@ module Downloader
       @url = url
       @id = url[%r{.livejournal.com/(\d+).html}, 1].to_i
       @blog = blog || RemoteBlog.new(url[%r{://(.+?).livejournal.com}, 1])
+      #putsd "RemotePost.initialize #{@id}"
       load_from_cache
     end
 
@@ -63,17 +64,29 @@ module Downloader
       end
 
       begin
-        @title = @html_doc.at_css('h1')&.text&.strip || 'NO TITLE'
+        @title = @html_doc.at_css('title')&.text&.split(':')&.first
+        @title ||= @html_doc.at_css('h1')&.text&.strip
+        @title ||= 'NO TITLE'
 
-        time_str = @html_doc.at_css('time.published').text.strip
-        @time = DateTime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
-
+        time_str = @html_doc.at_css('time.published')&.text&.strip
+        time_str ||= @html_doc.at_xpath("//p[@class='aentry-head__date']/time")&.text&.strip
+        
+        begin
+          #puts "time_str: #{time_str}"
+          @time = DateTime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
+        rescue => e_date
+          #puts "time_str: #{time_str}"
+          @time = DateTime.strptime(time_str, '%B %d %Y, %H:%M')
+        end
+        
         init_comment_count
       rescue => e
         # raise e
         puts "Error for #{self.url}:"
         puts e.inspect
-        delete_cached_html
+        
+        puts "Skip html deletion"
+        ###!!! delete_cached_html
         return false
       end
     end
@@ -146,7 +159,7 @@ module Downloader
       @html_doc.css('footer')&.remove
       @html_doc.css('.b-discoverytimes-wrapper')&.remove
       @html_doc.css('.ljsale')&.remove
-      @html_doc.css('.lj-recommended')&.remove
+      @html_doc.css('.lj-recommended')&.remove      
     end
 
     def determine_page_count
@@ -159,7 +172,10 @@ module Downloader
 
     def prepare_browser(retry_no = 0)
       @browser ||= Chrome.create(headless: true, typ: 'desktop')
+      
       @browser.navigate.to(@url + '#comments')
+      add_session_cookie
+      
       if @browser.page_source.include?('This site can’t be reached') || @browser.page_source.length < 500
         raise ProxyError if retry_no > 5
         puts "*** RETRYING - #{retry_no + 1}"
@@ -167,6 +183,15 @@ module Downloader
         return prepare_browser(retry_no + 1)
       end
       return @browser
+    end
+
+    def add_session_cookie()
+      cookies_str = File.read("scraped/session_cookies.txt")
+      cookies_str.split('; ').each { |kv| 
+        cookie_name, cookie_value = kv.split('=')
+        puts "cookie_name: #{cookie_name}, value: #{cookie_value}"
+        @browser.manage.add_cookie(name: cookie_name, value: cookie_value)
+      }
     end
 
     def with_browser
@@ -190,6 +215,13 @@ module Downloader
       end
     end
 
+    def accept_cookies
+      if (button = @browser.find_elements(class: 'cookies-banner__button').first)
+        #puts 'accepting cookies!!!!!!!!!!!'
+        button.click
+      end
+    end
+    
     def save_page
       remove_unneeded_elements
       expand_spoilers
@@ -224,6 +256,15 @@ module Downloader
       @html_doc.css("meta[property]")&.remove
 
       # TODO: clean invisible iframes (<iframe frameborder="0" src="../index.html%3F%3Fplain%252FcrossStorageServ.html%3F&amp;v=1563267629.html" style="display: none; width: 0px; height: 0px; border: 0px;"></iframe><div class="ng-scope" lj-messages-init="true">)
+      
+      @html_doc.css('cookies-alert')&.remove
+      @html_doc.css('.post__socials')&.remove
+      @html_doc.css('.aentry-post__socials')&.remove
+      @html_doc.css('.j-user-subscribe-btn')&.remove
+      @html_doc.css('@data-react-rcm-news-block')&.remove
+      @html_doc.css('@data-react-rcm-block')&.remove
+      @html_doc.css('.more-entries-wrapper')&.remove
+      @html_doc.css('.aentry-wrapper__autoplay-video')&.remove
     end
 
     def expand_spoilers
@@ -233,6 +274,7 @@ module Downloader
     def download_expand_comments_and_save_cache
       putsd "Downloading #{@url}"
       with_browser do
+        accept_cookies
         accept_18_years_warning
         click_readability_checkbox
         scroll_to_comments
