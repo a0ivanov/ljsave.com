@@ -79,7 +79,8 @@ RUN apt-get update && \
 
 # TODO: should be equal to ${CHROME_VERSION}
 ENV CHROMEDRIVER_VERSION=154.0.8037.57
-RUN wget https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip \
+RUN mkdir ~/.webdrivers/ \
+    && wget https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip \
     && unzip chromedriver-linux64.zip \
     && mv ./chromedriver-linux64/chromedriver ~/.webdrivers/
 
