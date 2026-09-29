@@ -62,6 +62,11 @@ module Downloader
         options.add_argument(%{--user-agent="#{OPERA_USERAGENT}"})
       end
 
+      ###!!! note: it is not checked yet. if it requires installation of Russian system locale
+      options.add_preference("intl.accept_languages", 'ru-RU')
+      # this is not needed and not enough
+      # options.add_argument('--lang=ru-RU')
+
       return Selenium::WebDriver.for :chrome, options: options
     end
   end

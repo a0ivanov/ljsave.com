@@ -18,6 +18,15 @@ RUN cat /etc/apt/sources.list \
 
 ### deb http://archive.debian.org/debian bullseye-updates main
 
+# ENV LOCALE=ru_RU
+#     locales && \
+#   dpkg-reconfigure -f noninteractive tzdata && \
+#   sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+#   sed -i -e 's/# ${LOCALE}.UTF-8 UTF-8/${LOCALE}.UTF-8 UTF-8/' /etc/locale.gen && \
+#   echo "LANG=${LOCALE}.UTF-8" > /etc/default/locale && \
+#   dpkg-reconfigure --frontend=noninteractive locales && \
+#   update-locale LANG=${LOCALE}.UTF-8
+
 RUN echo 'Europe/Moscow' > /etc/timezone && \
   apt-get update && \
   apt-get install -yq --no-install-recommends \
@@ -55,6 +64,10 @@ RUN echo 'Europe/Moscow' > /etc/timezone && \
   && rm -rf /var/cache/apt/archives/* \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
   && truncate -s 0 /var/log/*log
+
+# ENV LANG=${LOCALE}.UTF-8
+# ENV LANGUAGE=${LOCALE}.UTF-8
+# ENV LC_ALL=${LOCALE}.UTF-8
 
 ### ### 114.0.5735.198-1
 ### ENV CHROME_VERSION=119.0.6045.199-1
