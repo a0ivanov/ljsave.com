@@ -217,7 +217,7 @@ module Downloader
 
     def accept_cookies
       if (button = @browser.find_elements(class: 'cookies-banner__button').first)
-        #puts 'accepting cookies!!!!!!!!!!!'
+        #puts 'give cookies consent'
         button.click
       end
     end
@@ -265,6 +265,10 @@ module Downloader
       @html_doc.css('@data-react-rcm-block')&.remove
       @html_doc.css('.more-entries-wrapper')&.remove
       @html_doc.css('.aentry-wrapper__autoplay-video')&.remove
+      @html_doc.css('.mdspost-comments-controls__addcomment')&.remove
+      @html_doc.css('.morePanel-0-2-1')&.remove
+      
+      
     end
 
     def expand_spoilers
