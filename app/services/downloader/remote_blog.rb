@@ -52,8 +52,9 @@ module Downloader
       putsd "Starting http server on port #{http_port}..."
       create_mirror_dir
       ensure_httpd_started
-
-      Parallel.each(posts, in_processes: 8, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      
+      process_number = 1 ###!!! to avoid repetitive noise during debugging 
+      Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
         url = "http://localhost:#{http_port}/#{post.user.name}/#{File.basename(post.cached_file_path)}"
         putsd url
         `wget -q -nv --timeout=2 -P #{RemoteBlog.out_dir}/#{@username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute="robots = off"  --convert-links #{url}  >/dev/null 2>/dev/null`
