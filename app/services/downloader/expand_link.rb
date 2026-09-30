@@ -10,6 +10,9 @@ module Downloader
       expand_links = browser.find_elements(css: '.b-leaf-footer .b-leaf-actions-expandchilds a')
       expand_links += browser.find_elements(css: '.b-leaf-collapsed .b-leaf-header .b-leaf-actions-expand a')
       expand_links += browser.find_elements(css: '.b-leaf-seemore-expand a')
+      # exists only in non-authenticated session
+      # In fact, can be requested directly https://[blog_id].livejournal.com/[post_id].html?noscroll#comments
+      #expand_links += browser.find_elements(css: '.quick-comments-footer a')
       return expand_links.map { |e| ExpandLink.new(e, browser) }
     end
 
