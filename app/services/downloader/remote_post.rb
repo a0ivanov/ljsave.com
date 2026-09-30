@@ -173,6 +173,11 @@ module Downloader
     def prepare_browser(retry_no = 0)
       @browser ||= Chrome.create(headless: true, typ: 'desktop')
       
+      # Raises error
+      # invalid cookie domain
+      #     (Session info: chrome=154.0.8037.57)
+      # add_session_cookie
+      
       @browser.navigate.to(@url + '#comments')
       add_session_cookie
       
@@ -189,7 +194,7 @@ module Downloader
       cookies_str = File.read("scraped/session_cookies.txt")
       cookies_str.split('; ').each { |kv| 
         cookie_name, cookie_value = kv.split('=')
-        puts "cookie_name: #{cookie_name}, value: #{cookie_value}"
+        #puts "cookie_name: #{cookie_name}, value: #{cookie_value}"
         @browser.manage.add_cookie(name: cookie_name, value: cookie_value)
       }
     end
@@ -215,9 +220,9 @@ module Downloader
       end
     end
 
-    def accept_cookies
+    def accept_cookies_non_authenticated
       if (button = @browser.find_elements(class: 'cookies-banner__button').first)
-        #puts 'give cookies consent'
+        puts 'give cookies consent'
         button.click
       end
     end
@@ -256,18 +261,24 @@ module Downloader
       @html_doc.css("meta[property]")&.remove
 
       # TODO: clean invisible iframes (<iframe frameborder="0" src="../index.html%3F%3Fplain%252FcrossStorageServ.html%3F&amp;v=1563267629.html" style="display: none; width: 0px; height: 0px; border: 0px;"></iframe><div class="ng-scope" lj-messages-init="true">)
+            
+      # begin of non-authenticated sessions
+      #@html_doc.css('cookies-alert')&.remove
+      #@html_doc.css('.post__socials')&.remove
+      #@html_doc.css('.aentry-post__socials')&.remove
+      #@html_doc.css('.j-user-subscribe-btn')&.remove
+      #@html_doc.css('@data-react-rcm-news-block')&.remove
+      #@html_doc.css('@data-react-rcm-block')&.remove
+      #@html_doc.css('.more-entries-wrapper')&.remove
+      #@html_doc.css('.aentry-wrapper__autoplay-video')&.remove
+      #@html_doc.css('.mdspost-comments-controls__addcomment')&.remove
+      #@html_doc.css('.morePanel-0-2-1')&.remove
+      #@html_doc.css('.s-menu-aside')&.remove
+      # end of non-authenticated sessions
       
-      @html_doc.css('cookies-alert')&.remove
-      @html_doc.css('.post__socials')&.remove
-      @html_doc.css('.aentry-post__socials')&.remove
-      @html_doc.css('.j-user-subscribe-btn')&.remove
-      @html_doc.css('@data-react-rcm-news-block')&.remove
-      @html_doc.css('@data-react-rcm-block')&.remove
-      @html_doc.css('.more-entries-wrapper')&.remove
-      @html_doc.css('.aentry-wrapper__autoplay-video')&.remove
-      @html_doc.css('.mdspost-comments-controls__addcomment')&.remove
-      @html_doc.css('.morePanel-0-2-1')&.remove
-      
+      @html_doc.css('.b-singlepost-reactions')&.remove
+      @html_doc.css('.cookies-banner')&.remove
+      @html_doc.css('.b-massaction-anchor')&.remove
       
     end
 
@@ -278,7 +289,8 @@ module Downloader
     def download_expand_comments_and_save_cache
       putsd "Downloading #{@url}"
       with_browser do
-        accept_cookies
+        # not needed for authenticated sessions
+        #accept_cookies_non_authenticated
         accept_18_years_warning
         click_readability_checkbox
         scroll_to_comments
