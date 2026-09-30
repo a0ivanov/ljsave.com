@@ -19,8 +19,8 @@ module Downloader
       datadir = "#{datadir}/../lj_chrome_data/"
       puts "Chrome data directory: #{datadir}"
       # hardcode for debug
-      `rm -f /app/app/lj_chrome_data/SingletonLock`
-      `rm -f /app/app/lj_chrome_data/SingletonCookie`
+      `rm -f #{datadir}SingletonLock`
+      `rm -f #{datadir}SingletonCookie`
       
       # chromedriver binary downloaded from
       #    https://googlechromelabs.github.io/chrome-for-testing/
