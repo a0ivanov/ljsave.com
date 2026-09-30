@@ -265,7 +265,6 @@ module Downloader
       # TODO: clean invisible iframes (<iframe frameborder="0" src="../index.html%3F%3Fplain%252FcrossStorageServ.html%3F&amp;v=1563267629.html" style="display: none; width: 0px; height: 0px; border: 0px;"></iframe><div class="ng-scope" lj-messages-init="true">)
             
       # begin of non-authenticated sessions
-      #@html_doc.css('cookies-alert')&.remove
       #@html_doc.css('.post__socials')&.remove
       #@html_doc.css('.aentry-post__socials')&.remove
       #@html_doc.css('.j-user-subscribe-btn')&.remove
@@ -281,7 +280,18 @@ module Downloader
       @html_doc.css('.b-singlepost-reactions')&.remove
       @html_doc.css('.cookies-banner')&.remove
       @html_doc.css('.b-massaction-anchor')&.remove
-      
+      @html_doc.css('.b-bubble-memories')&.remove
+      @html_doc.css('.b-bubble-share')&.remove
+      @html_doc.css('.b-bubble-link')&.remove
+      @html_doc.css('.b-bubble-user')&.remove
+      @html_doc.css('.b-bubble-photouploader')&.remove
+      @html_doc.css('.b-bubble-video')&.remove
+      @html_doc.css('cookies-alert')&.remove
+      @html_doc.css('@lj-bubble')&.remove
+      @html_doc.css('.b-popup-contextual')&.remove
+      @html_doc.css('.b-watering-commentator')&.remove
+      @html_doc.css('.b-leaf-deleting-bubble')&.remove
+      @html_doc.css('.hello-world')&.remove
     end
 
     def expand_spoilers
