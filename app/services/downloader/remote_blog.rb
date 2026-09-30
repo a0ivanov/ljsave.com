@@ -39,7 +39,9 @@ module Downloader
     def start_httpd
       @httpd_port = RemoteBlog.get_free_port
       puts "Starting httpd:#{@httpd_port}..."
-      @httpd_server_process = Process.spawn("cd #{RemoteBlog.cached_posts_dir} && ruby -run -e httpd . -p #{@httpd_port} >/dev/null 2>/dev/null", :pgroup => true)
+      # >/dev/null 2>/dev/null
+      httpd_start_cmd = "cd #{RemoteBlog.cached_posts_dir} && ruby -run -e httpd . -p #{@httpd_port}"
+      @httpd_server_process = Process.spawn(httpd_start_cmd, :pgroup => true)
       sleep 3
     end
 

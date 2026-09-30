@@ -120,7 +120,9 @@ module Downloader
 
       url = "http://localhost:#{@blog.httpd_port}/#{@blog.username}/#{File.basename(cached_file_path)}"
       putsd url
-      `wget -q -nv --timeout=2 -P #{@blog.out_dir}/#{@blog.username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute="robots = off"  --convert-links #{url}`
+      wget_cmd = "wget -q -nv --timeout=2 -P #{@blog.out_dir}/#{@blog.username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute=\"robots = off\"  --convert-links #{url}"
+      putsd wget_cmd
+      `#{wget_cmd}`
     end
 
     private
