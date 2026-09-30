@@ -12,11 +12,15 @@ module Downloader
 
   class Chrome
     def self.create(headless: true, typ: 'desktop')
-      # `killall chromium-browser > /dev/null 2>&1`
-      # current_dir = File.expand_path(File.dirname(__FILE__))
-      # datadir = Pathname(current_dir).dirname.to_s
-      # datadir = Pathname(datadir).dirname.to_s
-      # datadir = "#{datadir}/tmp/chrome_datadirs/"
+      `killall chromium-browser > /dev/null 2>&1`
+      current_dir = File.expand_path(File.dirname(__FILE__))
+      datadir = Pathname(current_dir).dirname.to_s
+      datadir = Pathname(datadir).dirname.to_s
+      datadir = "#{datadir}/../lj_chrome_data/"
+      puts "Chrome data directory: #{datadir}"
+      # hardcode for debug
+      `rm -f /app/app/lj_chrome_data/SingletonLock`
+      `rm -f /app/app/lj_chrome_data/SingletonCookie`
       
       # chromedriver binary downloaded from
       #    https://googlechromelabs.github.io/chrome-for-testing/
@@ -51,7 +55,7 @@ module Downloader
       # options.add_argument('--disable-extensions')
       # options.add_argument('--proxy-server=socks5://localhost:7777')
       #   options.add_argument('--proxy-server=77.111.245.10:443')
-      # options.add_argument("--user-data-dir=#{datadir}")
+      options.add_argument("--user-data-dir=#{datadir}")
 
       if headless != false && ENV['NO_HEADLESS'] != '1'
         options.add_argument('--headless')
