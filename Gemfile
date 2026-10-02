@@ -43,7 +43,7 @@ group :test do
   gem 'logger', '~> 1.4'
   gem 'rubyzip', '< 4.0', '>= 1.2.2'
   gem 'selenium-webdriver'
-  get 'webrick'
+  gem 'webrick'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
