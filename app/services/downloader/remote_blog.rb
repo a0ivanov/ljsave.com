@@ -14,9 +14,10 @@ module Downloader
     def self.mirror_post(url)
       post = RemotePost.new(url)
       blog = post.blog
-      blog.with_running_httpd do
-        post.mirror
-      end
+      ###!!!blog.with_running_httpd do
+      ###!!!  post.mirror
+      ###!!!end
+      post.mirror
     end
 
     def create_mirror_dir
@@ -55,8 +56,9 @@ module Downloader
       create_mirror_dir
       ensure_httpd_started
       
-      process_number = 1 ###!!! to avoid repetitive noise during debugging 
-      Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      #process_number = 1 ###!!! to avoid repetitive noise during debugging 
+      #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      posts.each do |post|
         url = "http://localhost:#{http_port}/#{post.user.name}/#{File.basename(post.cached_file_path)}"
         putsd url
         `wget -q -nv --timeout=2 -P #{RemoteBlog.out_dir}/#{@username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute="robots = off"  --convert-links #{url}  >/dev/null 2>/dev/null`
@@ -87,17 +89,17 @@ module Downloader
     end
 
     def cached_posts_dir
-      return RemoteBlog.cached_posts_dir + "#{@username}/"
+      return RemoteBlog.cached_posts_dir + "/#{@username}"
     end
 
     def self.cached_posts_dir
       prefix = Rails.env.test? ? 'test' : ''
-      return "scraped/#{prefix}cache/"
+      return "scraped/#{prefix}cache"
     end
 
     def out_dir
       prefix = Rails.env.test? ? 'test' : ''
-      return "public/#{prefix}lj/#{@username}/"
+      return "public/#{prefix}lj/#{@username}"
     end
 
     def self.get_free_port
@@ -119,9 +121,11 @@ module Downloader
       posts = get_posts(cached: ENV['USE_CACHE'] == '1')
       putsd "Found #{posts.size} posts"
 
-      with_running_httpd do
-        mirror_posts(posts)
-      end
+      ###!!!with_running_httpd do
+      ###!!!  mirror_posts(posts)
+      ###!!!end
+      mirror_posts(posts)
+      
       create_index_file(posts)
       rebuild_index_file(cached: true)
     end
@@ -135,7 +139,8 @@ module Downloader
         process_number = process_number_str.to_i
       end
       
-      Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
+      posts.each do |post|
         next if post.cached? && ENV['REMIRROR'] != '1'
         puts "Will mirror #{post}"
         begin
@@ -160,7 +165,7 @@ module Downloader
     end
 
     def get_posts(cached: false)
-      cached_posts_list_path = cached_posts_dir + '_post_urls.txt'
+      cached_posts_list_path = cached_posts_dir + '/_post_urls.txt'
       if cached && File.exists?(cached_posts_list_path)
         putsd 'loading cached posts...'
         posts = File.open(cached_posts_list_path).readlines.map { |l| RemotePost.new(l.strip, blog: self) }
@@ -192,7 +197,7 @@ module Downloader
 
     def get_posts_from_archive_page(year, month)
       url = "https://#{@username}.livejournal.com/#{year}/#{sprintf('%02d', month)}/"
-      #putsd "loading url #{url}"
+      putsd "loading url #{url}"
       html = Nokogiri::HTML(read_url(url))
       urls = html.css('a').select { |a| a.attribute('href')&.value =~ %r{://#{@username}.livejournal.com/\d+.html} }.map { |a| a.attribute('href').value }
       putsd "    #{urls.size} for #{year}.#{month}"

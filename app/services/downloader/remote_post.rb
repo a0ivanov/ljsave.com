@@ -203,9 +203,38 @@ module Downloader
     end
 
     def with_browser
-      prepare_browser
+      puts "with_browser"
+      begin
+        prepare_browser
+      rescue => e
+        puts "Browser preparation error:"
+        puts e.inspect
+        puts e.backtrace
+        raise e
+      end
+
+      puts "after preparation"
+      `pgrep -l -r R chrome`
+
       yield
-      @browser.quit
+
+      puts "before quit"
+      `pgrep -l -r R chrome`
+
+      begin
+        puts "quitting browser"
+        @browser.quit
+        puts "sleep 3 sec"
+        sleep 3 ###!!! 
+      rescue => e1
+        puts "Browser quitting error:"
+        puts e1.inspect
+        puts e1.backtrace
+      ensure
+        `pgrep -l -r R chrome`
+        puts "nullify browser var"
+        @browser = nil
+      end
     end
 
     def click_readability_checkbox

@@ -12,7 +12,7 @@ module Downloader
 
   class Chrome
     def self.create(headless: true, typ: 'desktop')
-      `killall chromium-browser > /dev/null 2>&1`
+      # `killall chromium-browser > /dev/null 2>&1`
       # `killall chromedriver > /dev/null 2>&1`
       # `killall google-chrome > /dev/null 2>&1`
       # `killall chrome_crashpad > /dev/null 2>&1`
@@ -27,8 +27,8 @@ module Downloader
       datadir = "#{datadir}/../lj_chrome_data/"
       puts "Chrome data directory: #{datadir}"
       # hardcode for debug
-      `rm -f #{datadir}SingletonLock`
-      `rm -f #{datadir}SingletonCookie`
+      #`rm -f #{datadir}SingletonLock`
+      #`rm -f #{datadir}SingletonCookie`
       
       # chromedriver binary downloaded from
       #    https://googlechromelabs.github.io/chrome-for-testing/
@@ -84,6 +84,7 @@ module Downloader
       # https://techhelpz.online/selenium-chromedriver-session-not-created-devtoolsactiveport-file-does-not-exist-fix/
       options.add_argument("--disable-dev-shm-usage")
       options.add_argument("--remote-debugging-port=9222")
+      options.add_argument("--enable-unsafe-swiftshader")
       
       return Selenium::WebDriver.for :chrome, options: options
     end
