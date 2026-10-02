@@ -83,16 +83,22 @@ RUN echo 'Europe/Moscow' > /etc/timezone && \
 ### # && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list \
 ### # && apt-get update \
 
-# installing google-chrome-stable 
-# TODO: figure out how to download particular version.
-# Until then sync version of browser with chromedriver version below
-RUN apt-get update && \
-    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable
+### # installing google-chrome-stable 
+### # TODO: figure out how to download particular version.
+### # Until then sync version of browser with chromedriver version below
+### RUN apt-get update && \
+###     curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg && \
+###     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+###     apt-get update && apt-get install -y google-chrome-stable
 
-# TODO: should be equal to ${CHROME_VERSION}
-ENV CHROMEDRIVER_VERSION=154.0.8037.57
+ENV CHROME_VERSION=154.0.8037.57
+# installing google-chrome
+RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb \
+  && apt-get update \
+  && apt install -y /tmp/chrome.deb \
+  && rm /tmp/chrome.deb
+
+ENV CHROMEDRIVER_VERSION=${CHROME_VERSION}
 RUN mkdir ~/.webdrivers/ \
     && wget https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip \
     && unzip chromedriver-linux64.zip \
