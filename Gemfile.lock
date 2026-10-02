@@ -305,6 +305,7 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
   webdrivers
+  webrick
 
 BUNDLED WITH
    2.4.21

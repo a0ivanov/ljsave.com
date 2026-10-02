@@ -119,6 +119,9 @@ RUN gem install bundler -v 2.4.21 && \
 #   bundle update webdrivers && \
 #   bundle update selenium-webdriver && \
 
+#   bundle config set frozen false && \
+#   bundle update webrick && \
+
 COPY package.json /app/
 RUN yarn install --frozen-lockfile
 

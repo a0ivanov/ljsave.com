@@ -22,6 +22,8 @@ gem 'turbolinks', '~> 5'
 # gem 'capistrano-rails', group: :development
 gem 'webdrivers'
 
+gem 'webrick'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
@@ -43,7 +45,6 @@ group :test do
   gem 'logger', '~> 1.4'
   gem 'rubyzip', '< 4.0', '>= 1.2.2'
   gem 'selenium-webdriver'
-  gem 'webrick'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
