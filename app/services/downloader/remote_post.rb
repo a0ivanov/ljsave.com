@@ -18,7 +18,8 @@ module Downloader
     end
 
     def self.save_posts_to_cache(urls)
-      results = Parallel.map(urls, in_processes: 8, progress: "Saving #{urls.size} posts") do |url|
+      putsd "save_posts_to_cache!!!!!!!!!!"
+      results = Parallel.map(urls, in_processes: 1, progress: "Saving #{urls.size} posts") do |url|
         post = RemotePost.new(url)
         if File.exists?(post.cached_file_path)
           # putsd "Skipping #{post.url}"

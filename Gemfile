@@ -44,6 +44,7 @@ group :test do
   gem 'base64', '~> 0.2'
   gem 'logger', '~> 1.4'
   gem 'rubyzip', '< 4.0', '>= 1.2.2'
+  # note: 4.44 is the last one supporting ruby 3.2, others are for 3.3
   gem 'selenium-webdriver'
 end
 

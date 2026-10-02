@@ -91,12 +91,18 @@ RUN echo 'Europe/Moscow' > /etc/timezone && \
 ###     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
 ###     apt-get update && apt-get install -y google-chrome-stable
 
-ENV CHROME_VERSION=154.0.8037.57
+ENV CHROME_VERSION=154.0.8037.92
+# at some point things worked fine with 154.0.8037.57
+
 # installing google-chrome
 RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb \
   && apt-get update \
   && apt install -y /tmp/chrome.deb \
-  && rm /tmp/chrome.deb
+  && rm /tmp/chrome.deb \
+  && apt-get clean \
+  && rm -rf /var/cache/apt/archives/* \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && truncate -s 0 /var/log/*log
 
 ENV CHROMEDRIVER_VERSION=${CHROME_VERSION}
 RUN mkdir ~/.webdrivers/ \

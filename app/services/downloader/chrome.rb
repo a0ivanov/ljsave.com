@@ -13,6 +13,14 @@ module Downloader
   class Chrome
     def self.create(headless: true, typ: 'desktop')
       `killall chromium-browser > /dev/null 2>&1`
+      # `killall chromedriver > /dev/null 2>&1`
+      # `killall google-chrome > /dev/null 2>&1`
+      # `killall chrome_crashpad > /dev/null 2>&1`
+      # `pkill -f chrome`
+      # `pkill -f chromedriver`
+      # `pkill -f chrome_crashpad`
+      # `rm -rf /tmp/.com.google.Chrome.*`
+      
       current_dir = File.expand_path(File.dirname(__FILE__))
       datadir = Pathname(current_dir).dirname.to_s
       datadir = Pathname(datadir).dirname.to_s
@@ -49,8 +57,9 @@ module Downloader
 
       options.add_argument('--disable-features=site-per-process') # Disables OOPIF
       options.add_argument('--blink-settings=imagesEnabled=false')
-
-      options.add_argument('--disk-cache-size=2147483648')
+      
+      # this value causes spam in chrome log
+      #options.add_argument('--disk-cache-size=2147483648')
 
       # options.add_argument('--disable-extensions')
       # options.add_argument('--proxy-server=socks5://localhost:7777')
@@ -71,6 +80,11 @@ module Downloader
       # this is not needed and not enough
       # options.add_argument('--lang=ru-RU')
 
+      options.add_argument('--disable-search-engine-choice-screen')
+      # https://techhelpz.online/selenium-chromedriver-session-not-created-devtoolsactiveport-file-does-not-exist-fix/
+      options.add_argument("--disable-dev-shm-usage")
+      options.add_argument("--remote-debugging-port=9222")
+      
       return Selenium::WebDriver.for :chrome, options: options
     end
   end
