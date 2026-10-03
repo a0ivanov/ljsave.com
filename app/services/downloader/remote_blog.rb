@@ -14,10 +14,11 @@ module Downloader
     def self.mirror_post(url)
       post = RemotePost.new(url)
       blog = post.blog
-      ###!!!blog.with_running_httpd do
-      ###!!!  post.mirror
-      ###!!!end
-      post.mirror
+      blog.with_running_httpd do
+        with_browser do |browser|
+            post.mirror(browser)
+        end
+      end
     end
 
     def create_mirror_dir
@@ -61,7 +62,7 @@ module Downloader
       posts.each do |post|
         url = "http://localhost:#{http_port}/#{post.user.name}/#{File.basename(post.cached_file_path)}"
         putsd url
-        `wget -q -nv --timeout=2 -P #{RemoteBlog.out_dir}/#{@username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute="robots = off"  --convert-links #{url}  >/dev/null 2>/dev/null`
+        `wget -q -nv --timeout=2 -P #{RemoteBlog.out_dir}/#{@username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute="robots = off" --convert-links #{url} > /dev/null 2>/dev/null`
       end
     end
 
@@ -139,6 +140,15 @@ module Downloader
       end
       
       with_browser do |browser|
+        # To avoid error
+        #   invalid cookie domain
+        #       (Session info: chrome=154.0.8037.57)
+        # add_session_cookie should be called after initial navigation. So do warm up load first
+        profile_url = get_journal_url + "/profile/"
+        puts "warm up browser user data, loading #{profile_url}"
+        browser.navigate.to(profile_url)
+        add_session_cookie(browser)
+      
         #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
         posts.each do |post|
           next if post.cached? && ENV['REMIRROR'] != '1'
@@ -153,6 +163,15 @@ module Downloader
       end
     end
 
+    def add_session_cookie(browser)
+      cookies_str = File.read("scraped/session_cookies.txt")
+      cookies_str.split('; ').each { |kv| 
+        cookie_name, cookie_value = kv.split('=')
+        #puts "cookie_name: #{cookie_name}, value: #{cookie_value}"
+        browser.manage.add_cookie(name: cookie_name, value: cookie_value)
+      }
+    end
+    
     def with_browser
       puts "blog: with_browser"
       begin
@@ -181,10 +200,6 @@ module Downloader
         puts "Browser quitting error:"
         puts e1.inspect
         puts e1.backtrace
-      ensure
-        `pgrep -l chrome`
-        puts "nullify browser var"
-        browser = nil
       end
     end
 
@@ -231,8 +246,12 @@ module Downloader
       return posts
     end
 
+    def get_journal_url
+        return "https://#{@username}.livejournal.com"
+    end
+
     def get_posts_from_archive_page(year, month)
-      url = "https://#{@username}.livejournal.com/#{year}/#{sprintf('%02d', month)}/"
+      url = get_journal_url + "/#{year}/#{sprintf('%02d', month)}/"
       putsd "loading url #{url}"
       html = Nokogiri::HTML(read_url(url))
       urls = html.css('a').select { |a| a.attribute('href')&.value =~ %r{://#{@username}.livejournal.com/\d+.html} }.map { |a| a.attribute('href').value }

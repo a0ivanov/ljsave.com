@@ -175,16 +175,8 @@ module Downloader
       @browser.execute_script("if(document.getElementById('comments')){document.getElementById('comments').scrollIntoView(true)}")
     end
 
-    def prepare_browser(retry_no = 0)
-      ###!!!@browser ||= Chrome.create(headless: true, typ: 'desktop')
-      
-      # Raises error
-      # invalid cookie domain
-      #     (Session info: chrome=154.0.8037.57)
-      # add_session_cookie
-      
+    def prepare_browser(retry_no = 0)      
       @browser.navigate.to(@url + '#comments')
-      add_session_cookie
       
       if @browser.page_source.include?('This site can’t be reached') || @browser.page_source.length < 500
         raise ProxyError if retry_no > 5
@@ -193,15 +185,6 @@ module Downloader
         return prepare_browser(retry_no + 1)
       end
       return @browser
-    end
-
-    def add_session_cookie()
-      cookies_str = File.read("scraped/session_cookies.txt")
-      cookies_str.split('; ').each { |kv| 
-        cookie_name, cookie_value = kv.split('=')
-        #puts "cookie_name: #{cookie_name}, value: #{cookie_value}"
-        @browser.manage.add_cookie(name: cookie_name, value: cookie_value)
-      }
     end
 
     def with_browser
