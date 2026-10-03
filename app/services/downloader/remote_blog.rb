@@ -121,10 +121,9 @@ module Downloader
       posts = get_posts(cached: ENV['USE_CACHE'] == '1')
       putsd "Found #{posts.size} posts"
 
-      ###!!!with_running_httpd do
-      ###!!!  mirror_posts(posts)
-      ###!!!end
-      mirror_posts(posts)
+      with_running_httpd do
+        mirror_posts(posts)
+      end
       
       create_index_file(posts)
       rebuild_index_file(cached: true)
@@ -139,16 +138,53 @@ module Downloader
         process_number = process_number_str.to_i
       end
       
-      #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
-      posts.each do |post|
-        next if post.cached? && ENV['REMIRROR'] != '1'
-        puts "Will mirror #{post}"
-        begin
-          post.mirror
-        rescue => e
-          puts e
-          retry
+      with_browser do |browser|
+        #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
+        posts.each do |post|
+          next if post.cached? && ENV['REMIRROR'] != '1'
+          puts "Will mirror #{post}"
+          begin
+            post.mirror(browser)
+          rescue => e
+            puts e
+            retry
+          end
         end
+      end
+    end
+
+    def with_browser
+      puts "blog: with_browser"
+      begin
+        browser = Chrome.create(headless: true, typ: 'desktop')
+      rescue => e
+        puts "Browser preparation error:"
+        puts e.inspect
+        puts e.backtrace
+        raise e
+      end
+
+      puts "after preparation"
+      `pgrep -l chrome`
+
+      yield browser
+
+      puts "before quit"
+      `pgrep -l chrome`
+
+      begin
+        puts "quitting browser"
+        browser.quit
+        puts "sleep 3 sec"
+        sleep 3 ###!!! 
+      rescue => e1
+        puts "Browser quitting error:"
+        puts e1.inspect
+        puts e1.backtrace
+      ensure
+        `pgrep -l chrome`
+        puts "nullify browser var"
+        browser = nil
       end
     end
 

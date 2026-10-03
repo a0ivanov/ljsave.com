@@ -114,7 +114,9 @@ module Downloader
       }
     end
 
-    def mirror
+    def mirror(browser)
+      @browser = browser
+      
       @blog.create_mirror_dir
 
       download_expand_comments_and_save_cache
@@ -174,7 +176,7 @@ module Downloader
     end
 
     def prepare_browser(retry_no = 0)
-      @browser ||= Chrome.create(headless: true, typ: 'desktop')
+      ###!!!@browser ||= Chrome.create(headless: true, typ: 'desktop')
       
       # Raises error
       # invalid cookie domain
@@ -203,7 +205,7 @@ module Downloader
     end
 
     def with_browser
-      puts "with_browser"
+      puts "post: with_browser"
       begin
         prepare_browser
       rescue => e
@@ -213,28 +215,9 @@ module Downloader
         raise e
       end
 
-      puts "after preparation"
-      `pgrep -l -r R chrome`
-
       yield
 
-      puts "before quit"
-      `pgrep -l -r R chrome`
-
-      begin
-        puts "quitting browser"
-        @browser.quit
-        puts "sleep 3 sec"
-        sleep 3 ###!!! 
-      rescue => e1
-        puts "Browser quitting error:"
-        puts e1.inspect
-        puts e1.backtrace
-      ensure
-        `pgrep -l -r R chrome`
-        puts "nullify browser var"
-        @browser = nil
-      end
+      @browser = nil
     end
 
     def click_readability_checkbox
