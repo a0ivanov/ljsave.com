@@ -123,7 +123,12 @@ module Downloader
 
       url = "http://localhost:#{@blog.httpd_port}/#{@blog.username}/#{File.basename(cached_file_path)}"
       putsd url
-      wget_cmd = "wget -q -nv --timeout=2 -P #{@blog.out_dir}/#{@blog.username}_files --page-requisites --no-cookies --no-host-directories --span-hosts -E --wait=0 --execute=\"robots = off\"  --convert-links #{url}"
+      # TODO: pass cookies to get chance to have proper css scripts refs.
+      # --no-cookies
+      cookies = browser.manage.all_cookies
+      cookie_header = cookies.map { |c| "#{c[:name]}=#{c[:value]}" }.join('; ')
+      
+      wget_cmd = "wget -q -nv --timeout=2 -P #{@blog.out_dir}/#{@blog.username}_files --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts -E --wait=0 --execute=\"robots = off\" --convert-links #{url}"
       putsd wget_cmd
       `#{wget_cmd}`
     end
