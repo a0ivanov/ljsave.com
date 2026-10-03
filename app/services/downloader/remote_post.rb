@@ -145,7 +145,7 @@ module Downloader
 
           # Remove pager
           more_content.css('.b-xylem')&.remove
-
+          more_content.css('.b-leaf-controls__wrap')&.remove
 
           comments_html.add_child(more_content.inner_html)
         end
@@ -169,7 +169,8 @@ module Downloader
       @html_doc.css('footer')&.remove
       @html_doc.css('.b-discoverytimes-wrapper')&.remove
       @html_doc.css('.ljsale')&.remove
-      @html_doc.css('.lj-recommended')&.remove      
+      @html_doc.css('.lj-recommended')&.remove
+      @html_doc.css('.b-leaf-controls__wrap')&.remove
     end
 
     def determine_page_count
@@ -293,6 +294,7 @@ module Downloader
       @html_doc.css('.b-watering-commentator')&.remove
       @html_doc.css('.b-leaf-deleting-bubble')&.remove
       @html_doc.css('.hello-world')&.remove
+      @html_doc.css('.b-massaction-mobile')&.remove
     end
 
     def expand_spoilers
