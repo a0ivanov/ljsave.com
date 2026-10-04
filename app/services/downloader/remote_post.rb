@@ -1,6 +1,10 @@
 require "awesome_print"
 require 'tty-progressbar'
 
+require 'zlib'
+require 'fileutils'
+require 'find'
+
 module Downloader
   class RemotePost
     attr_reader :url, :title, :time, :comment_count, :blog
@@ -128,12 +132,73 @@ module Downloader
       cookies = browser.manage.all_cookies
       cookie_header = cookies.map { |c| "#{c[:name]}=#{c[:value]}" }.join('; ')
       
-      wget_cmd = "wget -q -nv --timeout=2 -P #{@blog.out_dir}/#{@blog.username}_files --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts -E --wait=0 --execute=\"robots = off\" --convert-links #{url}"
+      wget_target_dir_path = "#{@blog.out_dir}/#{@blog.username}_files"
+      
+      # Tried to add '--compression=none' to allow '--adjust-extension' doing work. But it i
+      wget_cmd = "wget -q -nv --timeout=2 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --wait=0 --execute=\"robots = off\" #{url}"
       putsd wget_cmd
       `#{wget_cmd}`
+      ungzip_css(wget_target_dir_path)
     end
 
     private
+
+    # Deepseek provided
+    def ungzip_css(wget_exported_root_path)      
+      raise "Directory not found: #{wget_exported_root_path}" unless Dir.exist?(wget_exported_root_path)
+      
+      def gzipped?(path)
+        File.open(path, 'rb') { |f| f.read(2) == "\x1f\x8b".b }
+      rescue
+        false
+      end
+      
+      # Step 1: Walk the tree, convert any .css.gz files
+      Find.find(wget_exported_root_path) do |path|
+        next unless File.file?(path)
+        next unless path.end_with?('.css.gz')
+      
+        target = path.sub(/\.css\.gz\z/, '.css')
+        puts "Fixing: #{path} -> #{target}"
+      
+        if gzipped?(path)
+          # Decompress
+          begin
+            Zlib::GzipReader.open(path) do |gz|
+              File.open(target, 'wb') { |out| IO.copy_stream(gz, out) }
+            end
+            File.delete(path)
+            puts "  (decompressed)"
+          rescue Zlib::GzipFile::Error => e
+            warn "  ! Failed to decompress #{path}: #{e.message} — renaming instead"
+            FileUtils.mv(path, target)
+          end
+        else
+          # Just rename; it's actually plain content
+          FileUtils.mv(path, target)
+          puts "  (renamed, was not gzipped)"
+        end
+      end
+      
+      # Step 2: Rewrite references in HTML and CSS files
+      Find.find(wget_exported_root_path) do |path|
+        next unless File.file?(path)
+        next unless path =~ /\.(html?|css)\z/i
+      
+        content = File.read(path, mode: 'rb').force_encoding('UTF-8')
+        original = content.dup
+      
+        # Fix <link href="...css.gz"> and url(...css.gz) references
+        content.gsub!(/(\.css)\.gz(\b|["'\)\?#])/, '\1\2')
+      
+        if content != original
+          File.write(path, content)
+          puts "Rewrote references in: #{path}"
+        end
+      end
+      
+      puts "Done."
+    end
 
     def expand_next_comment_pages
       if @page_count > 1
