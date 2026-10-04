@@ -138,14 +138,29 @@ module Downloader
       wget_cmd = "wget -q -nv --timeout=2 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --wait=0 --execute=\"robots = off\" #{url}"
       putsd wget_cmd
       `#{wget_cmd}`
-      ungzip_css(wget_target_dir_path)
+      ungzip_css(wget_target_dir_path, ['css', 'html'])
     end
 
     private
 
     # Deepseek provided
-    def ungzip_css(wget_exported_root_path)      
-      raise "Directory not found: #{wget_exported_root_path}" unless Dir.exist?(wget_exported_root_path)
+    def ungzip_css(wget_exported_root_path, extensions_array)      
+      # Normalize extensions: strip leading dots, downcase, make a Set for fast lookup
+      extensions = extensions_array.map { |e| e.sub(/\A\./, '').downcase }.to_set
+      raise "No extensions provided" if extensions.empty?
+      
+      #puts "Root:       #{wget_exported_root_path}"
+      puts "Extensions: #{extensions.to_a.sort.join(', ')}"
+      
+      # Precompute the regex once:
+      #   matches ".EXT.gz" followed by a boundary char (or end of line/string)
+      #   captures the ".EXT" prefix so we can strip only the ".gz"
+      # Group 1 = ".ext" (case-insensitive), Group 2 = trailing boundary
+      ext_pattern = extensions.map { |e| Regexp.escape(e) }.join('|')
+      gz_ref_re   = /(\.(?:#{ext_pattern}))\.gz(\b|["'\)\?#]|\z)/i
+      
+      # Files whose *contents* we rewrite (i.e., text formats that may reference assets)
+      text_extensions = %w[html htm css js json svg xml txt].to_set
       
       def gzipped?(path)
         File.open(path, 'rb') { |f| f.read(2) == "\x1f\x8b".b }
@@ -153,51 +168,56 @@ module Downloader
         false
       end
       
-      # Step 1: Walk the tree, convert any .css.gz files
+      # ---------------------------------------------------------------------------
+      # Step 1: Rename/decompress downloaded files ending in ".EXT.gz" -> ".EXT"
+      # ---------------------------------------------------------------------------
+      gz_suffix_re = /\.(#{ext_pattern})\.gz\z/i
+      
       Find.find(wget_exported_root_path) do |path|
         next unless File.file?(path)
-        next unless path.end_with?('.css.gz')
+        m = path.match(gz_suffix_re)
+        next unless m
       
-        target = path.sub(/\.css\.gz\z/, '.css')
-        puts "Fixing: #{path} -> #{target}"
+        target = path.sub(gz_suffix_re, ".#{m[1]}")
+        puts "Fixing: #{path}"
+        puts "     -> #{target}"
       
         if gzipped?(path)
-          # Decompress
           begin
             Zlib::GzipReader.open(path) do |gz|
               File.open(target, 'wb') { |out| IO.copy_stream(gz, out) }
             end
             File.delete(path)
-            puts "  (decompressed)"
+            puts "     (decompressed)"
           rescue Zlib::GzipFile::Error => e
-            warn "  ! Failed to decompress #{path}: #{e.message} — renaming instead"
+            warn "     ! Decompress failed: #{e.message} — renaming instead"
             FileUtils.mv(path, target)
           end
         else
-          # Just rename; it's actually plain content
           FileUtils.mv(path, target)
-          puts "  (renamed, was not gzipped)"
+          puts "     (renamed, content was not gzipped)"
         end
       end
       
-      # Step 2: Rewrite references in HTML and CSS files
+      # ---------------------------------------------------------------------------
+      # Step 2: Rewrite references in text files: ".EXT.gz" -> ".EXT"
+      # ---------------------------------------------------------------------------
       Find.find(wget_exported_root_path) do |path|
         next unless File.file?(path)
-        next unless path =~ /\.(html?|css)\z/i
       
-        content = File.read(path, mode: 'rb').force_encoding('UTF-8')
-        original = content.dup
+        ext = File.extname(path).sub(/\A\./, '').downcase
+        next unless text_extensions.include?(ext)
       
-        # Fix <link href="...css.gz"> and url(...css.gz) references
-        content.gsub!(/(\.css)\.gz(\b|["'\)\?#])/, '\1\2')
+        content  = File.binread(path)
+        replaced = content.gsub(gz_ref_re) { "#{$1}#{$2}" }
       
-        if content != original
-          File.write(path, content)
-          puts "Rewrote references in: #{path}"
-        end
+        next if replaced == content
+      
+        File.binwrite(path, replaced)
+        puts "Rewrote refs in: #{path}"
       end
       
-      puts "Done."
+      puts "Done"
     end
 
     def expand_next_comment_pages
