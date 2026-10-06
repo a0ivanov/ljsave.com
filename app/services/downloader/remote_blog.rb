@@ -139,6 +139,8 @@ module Downloader
         process_number = process_number_str.to_i
       end
       
+      limiter = RateLimiter.new(5) # max 5 calls per minute
+      
       with_browser do |browser|
         # To avoid error
         #   invalid cookie domain
@@ -152,9 +154,11 @@ module Downloader
         #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
         posts.each do |post|
           next if post.cached? && ENV['REMIRROR'] != '1'
-          puts "Will mirror #{post}"
+          puts "Will mirror #{post}. Time: #{Time.now}"
           begin
-            post.mirror(browser)
+            limiter.call do 
+              post.mirror(browser)
+            end
           rescue => e
             puts e
             retry
