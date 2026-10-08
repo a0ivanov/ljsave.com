@@ -12,7 +12,7 @@ module Downloader
       wait_time = @interval - (now - @last_call)
       
       if wait_time > 0
-        puts "Wait for #{wait_time} seconds"
+        puts "Wait for #{wait_time.round(1)} seconds"
         sleep(wait_time)
       end
       
