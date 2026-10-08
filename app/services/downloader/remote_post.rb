@@ -138,7 +138,9 @@ module Downloader
       wget_cmd = "wget -q -nv --timeout=2 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --wait=0 --execute=\"robots = off\" #{url}"
       putsd wget_cmd
       `#{wget_cmd}`
-      ungzip_css(wget_target_dir_path, ['css', 'html'])
+      # disabled during huge blog downloading as number of files
+      #  to upgrade is growing and it decreases process speed.
+      #ungzip_css(wget_target_dir_path, ['css', 'html'])
     end
 
     private
