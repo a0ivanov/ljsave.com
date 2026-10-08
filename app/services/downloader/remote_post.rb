@@ -380,6 +380,7 @@ module Downloader
       @html_doc.css('.b-leaf-deleting-bubble')&.remove
       @html_doc.css('.hello-world')&.remove
       @html_doc.css('.b-massaction-mobile')&.remove
+      @html_doc.css('.threeposts')&.remove 
     end
 
     def expand_spoilers
