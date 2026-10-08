@@ -91,8 +91,7 @@ RUN echo 'Europe/Moscow' > /etc/timezone && \
 ###     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
 ###     apt-get update && apt-get install -y google-chrome-stable
 
-ENV CHROME_VERSION=154.0.8037.92
-# at some point things worked fine with 154.0.8037.57
+ENV CHROME_VERSION=155.0.8059.39
 
 # installing google-chrome
 RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb \
