@@ -63,13 +63,20 @@ module Downloader
       return @post_id ||= @url[%r{(\d+)\.html}, 1]
     end
 
+    def remove_suffix_after_last_colon(text)
+      last_colon_index = text&.rindex(':')
+      return text if last_colon_index.nil?
+      
+      text[0...last_colon_index]
+    end
+
     def init_title_and_time
       unless @html_doc
         download_expand_comments_and_save_cache
       end
 
       begin
-        @title = @html_doc.at_css('title')&.text&.split(':')&.first
+        @title = remove_suffix_after_last_colon(@html_doc.at_css('title')&.text)&.strip
         @title ||= @html_doc.at_css('h1')&.text&.strip
         @title ||= 'NO TITLE'
 
