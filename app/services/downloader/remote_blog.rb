@@ -265,6 +265,7 @@ module Downloader
       url = get_journal_url + "/#{year}/#{sprintf('%02d', month)}/"
       putsd "loading url #{url}"
       html = Nokogiri::HTML(read_url(url))
+      html.css('.sidebar')&.remove
       urls = html.css('a').select { |a| a.attribute('href')&.value =~ %r{://#{@username}.livejournal.com/\d+.html} }.map { |a| a.attribute('href').value }
       putsd "    #{urls.size} for #{year}.#{month}"
       return urls.map { |u| RemotePost.new(u.strip, blog: self) }
