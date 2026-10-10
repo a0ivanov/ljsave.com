@@ -133,6 +133,20 @@ module Downloader
     private
 
     def mirror_posts(posts)
+      # early return if nothing to do
+      if ENV['REMIRROR'] != '1'
+        non_cached_post_exists = false
+        posts.each do |post|
+          next if post.cached?
+          non_cached_post_exists = true
+          break
+        end
+        if not non_cached_post_exists
+            puts 'all posts cached, skip browser initialization'
+            return
+        end            
+      end
+      
       # it looks like 8 processes block selenium driver. Use 1 as it works at least
       process_number = 1
       if (process_number_str = ENV['MIRROR_POSTS_PROCESS_NUMBER'])
