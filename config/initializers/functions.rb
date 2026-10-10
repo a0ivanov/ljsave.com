@@ -10,15 +10,15 @@ def read_url(url, opts: {})
   require 'open-uri'
   # require 'resolv-replace'
   
-  #if (proxy = ENV['PROXY'])
-  #  proxy = "http://#{proxy}" unless proxy.start_with?('http://')
-  #  opts[:proxy] = URI.parse(proxy)
-  #  opts['User-Agent'] = OPERA_USERAGENT
-  #  #opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
-  #  #opts[:ssl_min_version] = :TLSv1_2
-  #  #opts[:open_timeout] = 60
-  #  #opts[:read_timeout] = 60
-  #end
+  if (proxy = ENV['PROXY'])
+    proxy = "http://#{proxy}" unless proxy.start_with?('http://')
+    opts[:proxy] = URI.parse(proxy)
+    opts['User-Agent'] = OPERA_USERAGENT
+    #opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+    #opts[:ssl_min_version] = :TLSv1_2
+    #opts[:open_timeout] = 60
+    #opts[:read_timeout] = 60
+  end
   
   if (url.include? ".livejournal.com/")
     if (lj_proxy = ENV['LJ_HTTP_HTTPS_PROXY'])
@@ -34,6 +34,6 @@ def read_url(url, opts: {})
   #test_query = URI.open('https://realityresearcher.ru', opts).read
   #putsd("test_query: #{test_query}")
 
-  #putsd("read_url: #{url}")
+  putsd("read_url: #{url}")
   return URI.open(url, opts).read
 end
