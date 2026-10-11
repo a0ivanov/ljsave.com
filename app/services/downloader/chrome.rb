@@ -26,7 +26,6 @@ module Downloader
       datadir = Pathname(datadir).dirname.to_s
       datadir = "#{datadir}/../lj_chrome_data/"
       puts "Chrome data directory: #{datadir}"
-      # hardcode for debug
       #`rm -f #{datadir}SingletonLock`
       #`rm -f #{datadir}SingletonCookie`
       
@@ -60,6 +59,7 @@ module Downloader
       
       # this value causes spam in chrome log
       #options.add_argument('--disk-cache-size=2147483648')
+      options.add_argument('--disk-cache-size=2000000000') # 2GB
 
       # options.add_argument('--disable-extensions')
       # options.add_argument('--proxy-server=socks5://localhost:7777')
@@ -86,7 +86,20 @@ module Downloader
       options.add_argument("--remote-debugging-port=9222")
       options.add_argument("--enable-unsafe-swiftshader")
       
-      return Selenium::WebDriver.for :chrome, options: options
+      begin 
+        driver = Selenium::WebDriver.for :chrome, options: options
+      rescue Selenium::WebDriver::Error::SessionNotCreatedError
+        puts 'browser data corrupted, recovering'
+        `pkill -f chrome`
+        `rm -f #{datadir}SingletonLock`
+        `rm -f #{datadir}SingletonCookie`
+        `rm -f #{datadir}Default/Preferences`
+        `rm -f "#{datadir}Local State"`
+        puts 'launch browser after cleanup'
+        driver = Selenium::WebDriver.for :chrome, options: options
+      end
+      
+      return driver
     end
   end
 end
