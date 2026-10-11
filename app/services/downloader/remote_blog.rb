@@ -3,6 +3,10 @@ require 'open-uri'
 require 'parallel'
 require 'active_support/all'
 
+require 'zlib'
+require 'fileutils'
+require 'find'
+
 module Downloader
   class RemoteBlog
     attr_reader :username, :httpd_port
@@ -125,12 +129,89 @@ module Downloader
       with_running_httpd do
         mirror_posts(posts)
       end
-      
+            
       create_index_file(posts)
-      rebuild_index_file(cached: true)
+      #rebuild_index_file(cached: true)
     end
 
     private
+
+    # Deepseek provided
+    def ungzip_css(wget_exported_root_path, extensions_array)      
+      # Normalize extensions: strip leading dots, downcase, make a Set for fast lookup
+      extensions = extensions_array.map { |e| e.sub(/\A\./, '').downcase }.to_set
+      raise "No extensions provided" if extensions.empty?
+      
+      #puts "Root:       #{wget_exported_root_path}"
+      puts "Extensions: #{extensions.to_a.sort.join(', ')}"
+      
+      # Precompute the regex once:
+      #   matches ".EXT.gz" followed by a boundary char (or end of line/string)
+      #   captures the ".EXT" prefix so we can strip only the ".gz"
+      # Group 1 = ".ext" (case-insensitive), Group 2 = trailing boundary
+      ext_pattern = extensions.map { |e| Regexp.escape(e) }.join('|')
+      gz_ref_re   = /(\.(?:#{ext_pattern}))\.gz(\b|["'\)\?#]|\z)/i
+      
+      # Files whose *contents* we rewrite (i.e., text formats that may reference assets)
+      text_extensions = %w[html htm css js json svg xml txt].to_set
+      
+      def gzipped?(path)
+        File.open(path, 'rb') { |f| f.read(2) == "\x1f\x8b".b }
+      rescue
+        false
+      end
+      
+      # ---------------------------------------------------------------------------
+      # Step 1: Rename/decompress downloaded files ending in ".EXT.gz" -> ".EXT"
+      # ---------------------------------------------------------------------------
+      gz_suffix_re = /\.(#{ext_pattern})\.gz\z/i
+      
+      Find.find(wget_exported_root_path) do |path|
+        next unless File.file?(path)
+        m = path.match(gz_suffix_re)
+        next unless m
+      
+        target = path.sub(gz_suffix_re, ".#{m[1]}")
+        puts "Fixing: #{path}"
+        puts "     -> #{target}"
+      
+        if gzipped?(path)
+          begin
+            Zlib::GzipReader.open(path) do |gz|
+              File.open(target, 'wb') { |out| IO.copy_stream(gz, out) }
+            end
+            File.delete(path)
+            puts "     (decompressed)"
+          rescue Zlib::GzipFile::Error => e
+            warn "     ! Decompress failed: #{e.message} — renaming instead"
+            FileUtils.mv(path, target)
+          end
+        else
+          FileUtils.mv(path, target)
+          puts "     (renamed, content was not gzipped)"
+        end
+      end
+      
+      # ---------------------------------------------------------------------------
+      # Step 2: Rewrite references in text files: ".EXT.gz" -> ".EXT"
+      # ---------------------------------------------------------------------------
+      Find.find(wget_exported_root_path) do |path|
+        next unless File.file?(path)
+      
+        ext = File.extname(path).sub(/\A\./, '').downcase
+        next unless text_extensions.include?(ext)
+      
+        content  = File.binread(path)
+        replaced = content.gsub(gz_ref_re) { "#{$1}#{$2}" }
+      
+        next if replaced == content
+      
+        File.binwrite(path, replaced)
+        puts "Rewrote refs in: #{path}"
+      end
+      
+      puts "Done"
+    end
 
     def mirror_posts(posts)
       # early return if nothing to do
@@ -156,6 +237,9 @@ module Downloader
       start_time = Time.now
       limiter = RateLimiter.new(4) # max calls per minute
       
+      wget_target_dir_path = "#{out_dir}/#{@username}_files"
+      download_artifacts = true # ENV['DOWNLOAD_ARTIFACTS'] == '1'
+      
       with_browser do |browser|
         # To avoid error
         #   invalid cookie domain
@@ -174,17 +258,29 @@ module Downloader
           et_h = (elapsed_time_seconds / 3600).to_i
           et_m = (elapsed_time_seconds / 60).to_i % 60
           et_s = elapsed_time_seconds.to_i % 60
-          puts "Will mirror #{post}. Time: #{et_h}:#{et_m}:#{et_s}"
+          puts "Will mirror #{post}. Time: #{'%02d' % et_h}:#{'%02d' % et_m}:#{'%02d' % et_s}"
           
           begin
             limiter.call do 
-              post.mirror(browser)
+              post.mirror(browser, download_artifacts)
             end
           rescue => e
             puts e
             retry
           end
+          
+          if download_artifacts
+            puts 'post process wget artifacts after post downloading'
+            ungzip_css(wget_target_dir_path, ['css', 'html'])
+          end
         end
+      end
+      
+      if download_artifacts
+        ### puts 'post process wget artifacts ONCE'
+        ### # do it only once after downloading because doing it on the per post basis affect speed
+        ### # as number of files to upgrade is growing and it decreases process speed.
+        ### ungzip_css(wget_target_dir_path, ['css', 'html'])
       end
     end
 
@@ -208,28 +304,28 @@ module Downloader
         raise e
       end
 
-      puts "after preparation"
-      `pgrep -l chrome`
+      #puts "after preparation"
+      #`pgrep -l chrome`
 
       yield browser
-
-      puts "before quit"
-      `pgrep -l chrome`
-
-      begin
-        puts "quitting browser"
-        browser.quit
-        puts "sleep 3 sec"
-        sleep 3 ###!!! 
-      rescue => e1
-        puts "Browser quitting error:"
-        puts e1.inspect
-        puts e1.backtrace
+      ensure
+        #puts "before quit"
+        #`pgrep -l chrome`
+        begin
+          puts "quitting browser"
+          browser.quit
+          puts "sleep 3 sec"
+          sleep 3 ###!!! 
+        rescue => e1
+          puts "Browser quitting error:"
+          puts e1.inspect
+          puts e1.backtrace
+          raise e1
       end
     end
 
     def get_date_range
-      start_year = 2007
+      start_year = 2011
       start_month = 1
 
       end_year = Date.today.year

@@ -1,10 +1,6 @@
 require "awesome_print"
 require 'tty-progressbar'
 
-require 'zlib'
-require 'fileutils'
-require 'find'
-
 module Downloader
   class RemotePost
     attr_reader :url, :title, :time, :comment_count, :blog
@@ -125,109 +121,37 @@ module Downloader
       }
     end
 
-    def mirror(browser)
+    def mirror(browser, download_artifacts)
       @browser = browser
+      
+      #raise Exception.new('testing mirror error!!!')
       
       @blog.create_mirror_dir
 
       download_expand_comments_and_save_cache
+      
+      if download_artifacts
+        url = "http://localhost:#{@blog.httpd_port}/#{@blog.username}/#{File.basename(cached_file_path)}"
+        putsd url
+        # TODO: pass cookies to get chance to have proper css scripts refs.
+        # --no-cookies
+        cookies = browser.manage.all_cookies
+        cookie_header = cookies.map { |c| "#{c[:name]}=#{c[:value]}" }.join('; ')
 
-      url = "http://localhost:#{@blog.httpd_port}/#{@blog.username}/#{File.basename(cached_file_path)}"
-      putsd url
-      # TODO: pass cookies to get chance to have proper css scripts refs.
-      # --no-cookies
-      cookies = browser.manage.all_cookies
-      cookie_header = cookies.map { |c| "#{c[:name]}=#{c[:value]}" }.join('; ')
-      
-      wget_target_dir_path = "#{@blog.out_dir}/#{@blog.username}_files"
-      
-      # Tried to add '--compression=none' to allow '--adjust-extension' doing work. But it i
-      wget_cmd = "wget -q -nv --timeout=2 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --wait=0 --execute=\"robots = off\" #{url}"
-      putsd wget_cmd
-      `#{wget_cmd}`
-      # disabled during huge blog downloading as number of files
-      #  to upgrade is growing and it decreases process speed.
-      #ungzip_css(wget_target_dir_path, ['css', 'html'])
+        wget_target_dir_path = "#{@blog.out_dir}/#{@blog.username}_files"
+        
+        # Tried to add '--compression=none' to allow '--adjust-extension' doing work. But ended up with manual decompression and links correction
+        # -q -nv # prevents logs
+        # --wait=0
+        wget_cmd = "wget --timeout=5 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --execute=\"robots = off\" --timestamping #{url}"
+        putsd wget_cmd
+        `#{wget_cmd}`
+      else
+        puts "skip wget downloading to speedup"
+      end
     end
 
     private
-
-    # Deepseek provided
-    def ungzip_css(wget_exported_root_path, extensions_array)      
-      # Normalize extensions: strip leading dots, downcase, make a Set for fast lookup
-      extensions = extensions_array.map { |e| e.sub(/\A\./, '').downcase }.to_set
-      raise "No extensions provided" if extensions.empty?
-      
-      #puts "Root:       #{wget_exported_root_path}"
-      puts "Extensions: #{extensions.to_a.sort.join(', ')}"
-      
-      # Precompute the regex once:
-      #   matches ".EXT.gz" followed by a boundary char (or end of line/string)
-      #   captures the ".EXT" prefix so we can strip only the ".gz"
-      # Group 1 = ".ext" (case-insensitive), Group 2 = trailing boundary
-      ext_pattern = extensions.map { |e| Regexp.escape(e) }.join('|')
-      gz_ref_re   = /(\.(?:#{ext_pattern}))\.gz(\b|["'\)\?#]|\z)/i
-      
-      # Files whose *contents* we rewrite (i.e., text formats that may reference assets)
-      text_extensions = %w[html htm css js json svg xml txt].to_set
-      
-      def gzipped?(path)
-        File.open(path, 'rb') { |f| f.read(2) == "\x1f\x8b".b }
-      rescue
-        false
-      end
-      
-      # ---------------------------------------------------------------------------
-      # Step 1: Rename/decompress downloaded files ending in ".EXT.gz" -> ".EXT"
-      # ---------------------------------------------------------------------------
-      gz_suffix_re = /\.(#{ext_pattern})\.gz\z/i
-      
-      Find.find(wget_exported_root_path) do |path|
-        next unless File.file?(path)
-        m = path.match(gz_suffix_re)
-        next unless m
-      
-        target = path.sub(gz_suffix_re, ".#{m[1]}")
-        puts "Fixing: #{path}"
-        puts "     -> #{target}"
-      
-        if gzipped?(path)
-          begin
-            Zlib::GzipReader.open(path) do |gz|
-              File.open(target, 'wb') { |out| IO.copy_stream(gz, out) }
-            end
-            File.delete(path)
-            puts "     (decompressed)"
-          rescue Zlib::GzipFile::Error => e
-            warn "     ! Decompress failed: #{e.message} — renaming instead"
-            FileUtils.mv(path, target)
-          end
-        else
-          FileUtils.mv(path, target)
-          puts "     (renamed, content was not gzipped)"
-        end
-      end
-      
-      # ---------------------------------------------------------------------------
-      # Step 2: Rewrite references in text files: ".EXT.gz" -> ".EXT"
-      # ---------------------------------------------------------------------------
-      Find.find(wget_exported_root_path) do |path|
-        next unless File.file?(path)
-      
-        ext = File.extname(path).sub(/\A\./, '').downcase
-        next unless text_extensions.include?(ext)
-      
-        content  = File.binread(path)
-        replaced = content.gsub(gz_ref_re) { "#{$1}#{$2}" }
-      
-        next if replaced == content
-      
-        File.binwrite(path, replaced)
-        puts "Rewrote refs in: #{path}"
-      end
-      
-      puts "Done"
-    end
 
     def expand_next_comment_pages
       if @page_count > 1
