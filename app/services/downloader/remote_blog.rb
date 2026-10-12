@@ -317,10 +317,12 @@ module Downloader
         #puts "before quit"
         #`pgrep -l chrome`
         begin
-          puts "quitting browser"
-          browser.quit
-          puts "sleep 3 sec"
-          sleep 3 ###!!! 
+          if not browser.nil?
+            puts "quitting browser"
+            browser.quit
+            puts "sleep 3 sec"
+            sleep 3 ###!!!
+          end
         rescue => e1
           puts "Browser quitting error:"
           puts e1.inspect
