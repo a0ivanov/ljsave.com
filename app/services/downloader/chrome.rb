@@ -71,6 +71,7 @@ module Downloader
       end
 
       if ENV['PROXY']
+        puts "using proxy #{ENV['PROXY']}"
         options.add_argument(%{--proxy-server=#{ENV['PROXY']}})
         options.add_argument(%{--user-agent="#{OPERA_USERAGENT}"})
       end
@@ -95,6 +96,7 @@ module Downloader
         `rm -f #{datadir}SingletonCookie`
         `rm -f #{datadir}Default/Preferences`
         `rm -f "#{datadir}Local State"`
+        `rm -f "#{datadir}Default/Secure Preferences"`
         puts 'launch browser after cleanup'
         driver = Selenium::WebDriver.for :chrome, options: options
       end
