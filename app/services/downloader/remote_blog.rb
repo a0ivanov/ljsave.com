@@ -241,6 +241,11 @@ module Downloader
       download_artifacts = true # ENV['DOWNLOAD_ARTIFACTS'] == '1'
       
       with_browser do |browser|
+        # check if proxy is active
+        browser.navigate.to('http://ifconfig.me/ip')
+        #puts "public IP address: #{browser.page_source}"
+        puts "public IP address: #{Nokogiri::HTML(browser.page_source).at_xpath("/html/body/pre")&.text}"
+        
         # To avoid error
         #   invalid cookie domain
         #       (Session info: chrome=154.0.8037.57)
