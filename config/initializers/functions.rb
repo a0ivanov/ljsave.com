@@ -31,9 +31,6 @@ def read_url(url, opts: {})
     end
   end
 
-  #test_query = URI.open('https://realityresearcher.ru', opts).read
-  #putsd("test_query: #{test_query}")
-
-  putsd("read_url: #{url}")
+  #putsd("read_url: #{url}")
   return URI.open(url, opts).read
 end
