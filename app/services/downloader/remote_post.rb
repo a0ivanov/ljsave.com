@@ -78,13 +78,28 @@ module Downloader
 
         time_str = @html_doc.at_css('time.published')&.text&.strip
         time_str ||= @html_doc.at_xpath("//p[@class='aentry-head__date']/time")&.text&.strip
+        time_str ||= @html_doc.at_css("abbr.updated")["title"]
         
         begin
           #puts "time_str: #{time_str}"
           @time = DateTime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
         rescue => e_date
           #puts "time_str: #{time_str}"
-          @time = DateTime.strptime(time_str, '%B %d %Y, %H:%M')
+          
+          begin
+            #puts "time_str: #{time_str}"
+            @time = DateTime.strptime(time_str, '%B %d %Y, %H:%M')
+          rescue => e_date
+            #puts "time_str: #{time_str}"
+            # Ex: 2019-08-05T12:55:00+03:00
+            @time = DateTime.strptime(time_str, '%Y-%m-%dT%H:%M:%S%z')
+            # force false UTC timezone because the rest of the timestamps are recorded like that for UTC+3 timezone.
+            local_time_utc_offset_sec = @time.utc_offset
+            if local_time_utc_offset_sec == 10800
+              @time = @time.gmtime + local_time_utc_offset_sec
+              #puts "time_str (un)corrected: #{@time}
+            end
+          end
         end
         
         init_comment_count
@@ -193,6 +208,10 @@ module Downloader
       @html_doc.css('.ljsale')&.remove
       @html_doc.css('.lj-recommended')&.remove
       @html_doc.css('.b-leaf-controls__wrap')&.remove
+      
+      # For posts with disabled comments by author. Ex: last krylov's posts
+      @html_doc.css('.comment-menu')&.remove
+      @html_doc.css('.comment-controls')&.remove
     end
 
     def determine_page_count
@@ -318,6 +337,14 @@ module Downloader
       @html_doc.css('.hello-world')&.remove
       @html_doc.css('.b-massaction-mobile')&.remove
       @html_doc.css('.threeposts')&.remove 
+      
+      # For posts with disabled comments by author. Ex: last krylov's posts
+      @html_doc.css('.sidebar-inner')&.remove 
+      @html_doc.css('.comments-links')&.remove
+      @html_doc.css('.comments-pages')&.remove
+      @html_doc.css('.entry-linkbar')&.remove
+      @html_doc.css('.header-sec')&.remove
+      @html_doc.css('.nav-sub')&.remove
     end
 
     def expand_spoilers
