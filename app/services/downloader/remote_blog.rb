@@ -224,6 +224,14 @@ module Downloader
         end
         if not non_cached_post_exists
             puts 'all posts cached, skip browser initialization'
+            
+            if ENV['RESAVE_CACHED_POSTS'] == '1'
+              puts 'resaving cached posts'
+              posts.each do |post|
+                post.re_save_page
+              end
+            end
+            
             return
         end            
       end

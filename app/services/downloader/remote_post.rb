@@ -151,6 +151,10 @@ module Downloader
       end
     end
 
+    def re_save_page
+      save_page
+    end
+
     private
 
     def expand_next_comment_pages
