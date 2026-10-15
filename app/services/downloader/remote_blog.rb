@@ -263,6 +263,9 @@ module Downloader
         browser.navigate.to(profile_url)
         add_session_cookie(browser)
       
+        puts 'wait for 15 seconds to avoid LJ throttling'
+        sleep 15
+        
         #Parallel.each(posts, in_processes: process_number, progress: "Mirroring #{posts.size} HTMLs") do |post|
         posts.each do |post|
           next if post.cached? && ENV['REMIRROR'] != '1'
