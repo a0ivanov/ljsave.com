@@ -31,6 +31,12 @@ class PostParser
   def fix_relative_asset_urls!
     base_path = "/lj/#{@post.user.name}/#{@post.user.name}_files"
     @html.gsub!('href="../', "href=\"#{base_path}/")
+    # For some reason links
+    #    https://ic.pics.livejournal.com/bmwservice/44166753/399014/399014_original.png
+    # are replaced by wget with 
+    #    44166753/399014/399014_original.png
+    #    Replace it wiht lj/bmwservice/bmwservice_files/bmwservice/44166753/397618/397618_original.png
+    @html.gsub!(%r{src="([^h])}, "src=\"#{base_path}/#{@post.user.name}/\\1")
     @html.gsub!('src="../', "src=\"#{base_path}/")
   end
 
