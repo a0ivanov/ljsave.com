@@ -158,7 +158,7 @@ module Downloader
         # Tried to add '--compression=none' to allow '--adjust-extension' doing work. But ended up with manual decompression and links correction
         # -q -nv # prevents logs
         # --wait=0
-        wget_cmd = "wget --timeout=5 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --execute=\"robots = off\" --timestamping #{url}"
+        wget_cmd = "wget --timeout=5 -P #{wget_target_dir_path} --page-requisites --header=\"Cookie: #{cookie_header}\" --no-host-directories --span-hosts --adjust-extension --convert-links --execute=\"robots = off\" --timestamping --tries=10 #{url}"
         putsd wget_cmd
         `#{wget_cmd}`
       else
