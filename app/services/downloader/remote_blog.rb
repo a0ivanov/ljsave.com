@@ -285,18 +285,18 @@ module Downloader
             retry
           end
           
-          if download_artifacts
-            puts 'post process wget artifacts after post downloading'
-            ungzip_css(wget_target_dir_path, ['css', 'html'])
-          end
+          #if download_artifacts
+          #  puts 'post process wget artifacts after post downloading'
+          #  ungzip_css(wget_target_dir_path, ['css', 'html'])
+          #end
         end
       end
       
       if download_artifacts
-        ### puts 'post process wget artifacts ONCE'
-        ### # do it only once after downloading because doing it on the per post basis affect speed
-        ### # as number of files to upgrade is growing and it decreases process speed.
-        ### ungzip_css(wget_target_dir_path, ['css', 'html'])
+        puts 'post process wget artifacts ONCE'
+        # do it only once after downloading because doing it on the per post basis affect speed
+        # as number of files to upgrade is growing and it decreases process speed.
+        ungzip_css(wget_target_dir_path, ['css', 'html'])
       end
     end
 
