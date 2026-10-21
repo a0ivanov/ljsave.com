@@ -7,9 +7,10 @@ class PostParser
     @controller = controller
     @html = File.read("public/lj/#{@post.user.name}/#{@post.user.name}_files/#{@post.user.name}/#{@post.id}.html")
 
+    fix_relative_asset_urls!
     inject_head_content!
     inject_body_content!
-    fix_relative_asset_urls!
+    
     # replace_links_to_same_blog!
     replace_links_to_other_downloaded_blogs!
 
@@ -35,7 +36,7 @@ class PostParser
     #    https://ic.pics.livejournal.com/bmwservice/44166753/399014/399014_original.png
     # are replaced by wget with 
     #    44166753/399014/399014_original.png
-    #    Replace it wiht lj/bmwservice/bmwservice_files/bmwservice/44166753/397618/397618_original.png
+    #    Replace it with lj/bmwservice/bmwservice_files/bmwservice/44166753/397618/397618_original.png
     @html.gsub!(%r{src="([^h])}, "src=\"#{base_path}/#{@post.user.name}/\\1")
     @html.gsub!('src="../', "src=\"#{base_path}/")
   end
